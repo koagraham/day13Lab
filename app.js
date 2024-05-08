@@ -31,7 +31,8 @@ app.get('/all-animals', (req, res) => {
 });
 
 app.get('/animal-details/:animalId', (req, res) => {
-  res.render('animal-details.html.njk', { animal: stuffedAnimalData.elephant });
+  const animalDetails = getAnimalDetails(req.params.animalId)
+  res.render('animal-details.html.njk', { animal: animalDetails });
 });
 
 app.get('/add-to-cart/:animalId', (req, res) => {
@@ -42,6 +43,16 @@ app.get('/add-to-cart/:animalId', (req, res) => {
   // - check if the desired animal id is in the cart, and if not, put it in
   // - increment the count for that animal id by 1
   // - redirect the user to the cart page
+  const sess = req.session
+  const animalId = req.params.animalId
+  if (!sess.cart) {
+    sess.cart = {}
+  }
+  if (!(animalId in sess.cart)) {
+    sess.cart[animalId] = 0
+  }
+  sess.cart[animalId] += 1
+  res.redirect('/cart')
 });
 
 app.get('/cart', (req, res) => {
@@ -62,8 +73,24 @@ app.get('/cart', (req, res) => {
 
   // Make sure your function can also handle the case where no cart has
   // been added to the session
-
-  res.render('cart.html.njk');
+  if (!req.session.cart) {
+    req.session.cart = {}
+  }
+  const cart = req.session.cart
+  const animals = []
+  let total = 0
+  for (const animal in cart) {
+    const dummy = getAnimalDetails(animal)
+    const cost = dummy.price * cart[animal]
+    dummy.cost = cost
+    dummy.quantity = cart[animal]
+    total += cost
+    animals.push(dummy)
+  }
+  res.render('cart.html.njk', {
+    total: total,
+    animals: animals
+  });
 });
 
 app.get('/checkout', (req, res) => {
