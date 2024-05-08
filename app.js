@@ -27,7 +27,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/all-animals', (req, res) => {
-  res.render('all-animals.html.njk', { animals: Object.values(stuffedAnimalData) });
+  let user = "none"
+  if (req.session.username) {
+    user = req.session.username
+  }
+  res.render('all-animals.html.njk', { animals: Object.values(stuffedAnimalData), user: user });
 });
 
 app.get('/animal-details/:animalId', (req, res) => {
@@ -101,13 +105,28 @@ app.get('/checkout', (req, res) => {
 
 app.get('/login', (req, res) => {
   // TODO: Implement this
-  res.send('Login has not been implemented yet!');
+  res.render('login.html.njk');
 });
 
 app.post('/process-login', (req, res) => {
   // TODO: Implement this
-  res.send('Login has not been implemented yet!');
+  const username = req.body.username
+  const password = req.body.password
+  for (const user of users) {
+    if (username === user.username && password === user.password) {
+      req.session.username = username
+      res.redirect('/all-animals')
+      return
+    }
+  }
+  res.render('login.html.njk')
 });
+
+app.get('/logout', (req, res) => {
+  req.session.destroy( () => {
+    res.redirect('login.html.njk')
+  })
+})
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}...`);

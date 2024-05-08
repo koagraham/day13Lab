@@ -1,0 +1,11 @@
+{% extends 'base.html.njk' %}
+
+{% block body %}
+    <form action="/process-login" method="POST">
+        <label>Username</label>
+        <input type="text" name="username">
+        <label>Password</label>
+        <input type="text" name="password">
+        <button type="submit">Enter</button>
+    </form>
+{% endblock %}
